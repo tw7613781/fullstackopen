@@ -1,0 +1,17 @@
+// https://www.websequencediagrams.com/
+
+title new note
+
+browser->server: HTTP POST {note=input} to https://fullstack-exampleapp.herokuapp.com/new_note
+note over server: server receive the note content and added to node list in server
+server->browser: HTTP 302 redirect to Location:/notes
+note over browser: Below is the same with open the page
+browser->server: HTTP GET https://fullstack-exampleapp.herokuapp.com/notes
+server-->browser: HTML-code
+browser->server: HTTP GET https://fullstack-exampleapp.herokuapp.com/main.css
+server-->browser: main.css
+browser->server: HTTP GET https://fullstack-exampleapp.herokuapp.com/main.js
+server-->browser: main.js
+browser->server: HTTP GET https://fullstack-exampleapp.herokuapp.com/data.json
+note over server: The newly added note will be retrieved
+server-->browser: [{ content: "HTML is easy", date: "2019-05-23" }, ...]

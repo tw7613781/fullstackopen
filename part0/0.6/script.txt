@@ -1,0 +1,5 @@
+title Add note on SPA page 
+
+note over browser: The local js (main.js) will add the input note to the note list in the local and redraw the note list and send the note to server side as well
+browser->server: HTTP POST https://fullstack-exampleapp.herokuapp.com/new_note_spa
+server-->browser: HTTP 201 created with JSON data {"message":"note created"}
