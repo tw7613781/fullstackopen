@@ -22,9 +22,6 @@ const App = (props) => {
         return vote.indexOf(Math.max(...vote))
     }
 
-    console.log(selected)
-    console.log(vote)
-
     return (
         <div>
             <h1>Anecdote of the day</h1>
