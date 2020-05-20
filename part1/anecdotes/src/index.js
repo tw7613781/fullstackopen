@@ -6,7 +6,11 @@ const App = (props) => {
     const [vote, setVote] = useState(new Array(props.anecdotes.length).fill(0))
 
     const randomInt = () => {
-        return Math.floor(Math.random() * Math.floor(props.anecdotes.length))
+        let random = Math.floor(Math.random() * Math.floor(props.anecdotes.length))
+        while (random === selected) {
+            random = Math.floor(Math.random() * Math.floor(props.anecdotes.length))
+        }
+        return random
     }
 
     const handleVote = () => {
