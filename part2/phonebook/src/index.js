@@ -1,9 +1,10 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import ReactDOM from 'react-dom'
+import axios from 'axios'
 
 const Person = ({person}) => {
 	return (
-		<p>{person.name} {person.phone}</p>
+		<p>{person.name} {person.number}</p>
 	)
 }
 
@@ -31,13 +32,13 @@ const Filter = ({persons}) => {
 
 const PersonForm = ({persons, onPersonsChange}) => {
 	const [ newName, setNewName ] = useState('') 
-	const [ newPhone, setNewPhone ] = useState('')
+	const [ newNumber, setNewNumber ] = useState('')
 	const handleNameChange = (event) => {
 		setNewName(event.target.value)
 	}
 
-	const handlePhoneChnage = (event) => {
-		setNewPhone(event.target.value)
+	const handleNumberChange = (event) => {
+		setNewNumber(event.target.value)
 	}
 	const addPerson = (event) => {
 		event.preventDefault()
@@ -46,7 +47,7 @@ const PersonForm = ({persons, onPersonsChange}) => {
 		}
 		const newPerson = {
 			name: newName,
-			phone: newPhone
+			number: newNumber
 		}
 		onPersonsChange(persons.concat(newPerson))
 	}
@@ -57,7 +58,7 @@ const PersonForm = ({persons, onPersonsChange}) => {
 					name: <input value={newName} onChange={handleNameChange}/>
 				</div>
 				<div>
-					number: <input value={newPhone} onChange={handlePhoneChnage}/>
+					number: <input value={newNumber} onChange={handleNumberChange}/>
 				</div>
 				<div>
 					<button type="submit">add</button>
@@ -79,14 +80,23 @@ const Persons = ({persons}) => {
 
 const App = () => {
 
-	const [ persons, setPersons ] = useState([
-		{ name: 'Arto Hellas', phone: '040-123456' },
-		{ name: 'Ada Lovelace', phone: '39-44-5323523' },
-		{ name: 'Dan Abramov', phone: '12-43-234345' },
-		{ name: 'Mary Poppendieck', phone: '39-23-6423122' }
-	  ])
+	const [ persons, setPersons ] = useState()
 	const handlePersonsChange = (persons) => {
 		setPersons(persons)
+	}
+	useEffect( ()=>{
+		axios.get('http://localhost:3001/persons').
+		then( (res) => {
+			setPersons(res.data)
+		})
+	}, [])
+	if (persons === undefined) {
+		return (
+			<div>
+				<h2>Phonebook</h2>
+				<p>loading</p>
+			</div>
+		)
 	}
 	return (
 		<div>
