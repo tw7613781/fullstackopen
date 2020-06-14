@@ -1,18 +1,15 @@
 import React, { useState, useEffect } from 'react'
 import ReactDOM from 'react-dom'
-import axios from 'axios'
-
-const Person = ({person}) => {
-	return (
-		<p>{person.name} {person.number}</p>
-	)
-}
+import personsService from './services/persons'
 
 const Filter = ({persons}) => {
 	const [ searchedPersons, setSearchedPersons] = useState([])
 
 	const handleSearchName = (event) => {
 		const target = event.target.value.toLowerCase()
+		if(target === '') {
+			setSearchedPersons([])
+		} else
 		setSearchedPersons(persons.filter( (person) => {
 			const str = person.name.toLowerCase()
 			return str.includes(target)
@@ -23,7 +20,7 @@ const Filter = ({persons}) => {
 		<div>
 			filter shown with <input onChange={handleSearchName}/>
 			{searchedPersons.map( (person) => 
-				<Person key={person.name} person={person} />
+				<p key={person.id}>{person.name} {person.number}</p>
 			)}
 		</div>
 	)
@@ -42,14 +39,30 @@ const PersonForm = ({persons, onPersonsChange}) => {
 	}
 	const addPerson = (event) => {
 		event.preventDefault()
-		if (persons.find( person => person.name === newName)) {
-			return window.alert(`${newName} is already added to phonebook`)
-		}
 		const newPerson = {
 			name: newName,
 			number: newNumber
 		}
-		onPersonsChange(persons.concat(newPerson))
+		const conflictedPerson = persons.find( person => person.name === newName)
+		if (conflictedPerson) {
+			if (window.confirm(`${newName} is already added to phonebook, replace the old number with a new one?`)) {
+				personsService.update(conflictedPerson.id, newPerson)
+				.then( (data) => {
+					onPersonsChange(persons.map( person => person.id === data.id? data : person))
+				})
+				.catch( (e) => {
+					window.alert(`error with update person: ${e}`)
+				})
+			}
+		} else {
+			personsService.create(newPerson)
+			.then( (data) => {
+				onPersonsChange(persons.concat(data))
+			})
+			.catch( (e)=> {
+				window.alert(`error with create new person: ${e}`)
+			})
+		}
 	}
 	return (
 		<div>
@@ -68,11 +81,30 @@ const PersonForm = ({persons, onPersonsChange}) => {
 	)
 }
 
-const Persons = ({persons}) => {
+const Person = ({person, onPersonDelete}) => {
+
+	const handleDelete = (event) => {
+		const id = event.target.value
+		const name = event.target.name
+		if (window.confirm(`Do you really want to delete ${name}`)) {
+			personsService.deletePerson(id)
+			.then( () => {
+				onPersonDelete(id)
+			}).catch( (e) => {
+				window.alert(`error withn delete ${name}: ${e}`)
+			})
+		}
+	}
+	return (
+		<p>{person.name} {person.number} <button name={person.name} value={person.id} onClick={handleDelete}>delete</button></p>
+	)
+}
+
+const Persons = ({persons, onPersonDelete}) => {
 	return (
 		<div>
 			{persons.map( (person) => 
-				<Person key={person.name} person={person} />
+				<Person key={person.name} person={person} onPersonDelete={onPersonDelete}/>
 			)}
 		</div>
 	)
@@ -84,11 +116,13 @@ const App = () => {
 	const handlePersonsChange = (persons) => {
 		setPersons(persons)
 	}
+	const handlePersonDelete = (id) => {
+		setPersons(persons.filter( (person) => Number(id) !== person.id))
+	}
 	useEffect( ()=>{
-		axios.get('http://localhost:3001/persons').
-		then( (res) => {
-			setPersons(res.data)
-		})
+		personsService.getAll()
+		.then( data => setPersons(data))
+		.catch( (e)=>{ window.alert(`error with getAll data: ${e}`)})
 	}, [])
 	if (persons === undefined) {
 		return (
@@ -105,7 +139,7 @@ const App = () => {
 			<h2>add a new</h2>
 			<PersonForm persons={persons} onPersonsChange={handlePersonsChange} />
 			<h2>Numbers</h2>
-			<Persons persons={persons} />
+			<Persons persons={persons} onPersonDelete={handlePersonDelete}/>
 		</div>
 	)
 }
