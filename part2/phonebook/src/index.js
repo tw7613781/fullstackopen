@@ -1,6 +1,29 @@
 import React, { useState, useEffect } from 'react'
 import ReactDOM from 'react-dom'
 import personsService from './services/persons'
+import './index.css'
+
+const Notification = ({msg}) => {
+	if (msg === undefined) return null
+	else {
+		return (
+			<div className="Notification">
+				{msg}
+			</div>
+		)
+	}
+}
+
+const Error = ({e}) => {
+	if (e === undefined) return null
+	else {
+		return (
+			<div className="Error">
+				{e}
+			</div>
+		)
+	}
+}
 
 const Filter = ({persons}) => {
 	const [ searchedPersons, setSearchedPersons] = useState([])
@@ -27,13 +50,12 @@ const Filter = ({persons}) => {
 
 }
 
-const PersonForm = ({persons, onPersonsChange}) => {
+const PersonForm = ({persons, onPersonsChange, onMsgChange, onErrorChange}) => {
 	const [ newName, setNewName ] = useState('') 
 	const [ newNumber, setNewNumber ] = useState('')
 	const handleNameChange = (event) => {
 		setNewName(event.target.value)
 	}
-
 	const handleNumberChange = (event) => {
 		setNewNumber(event.target.value)
 	}
@@ -49,18 +71,32 @@ const PersonForm = ({persons, onPersonsChange}) => {
 				personsService.update(conflictedPerson.id, newPerson)
 				.then( (data) => {
 					onPersonsChange(persons.map( person => person.id === data.id? data : person))
+					onMsgChange(`${data.name}'s number is uplated`)
+					setTimeout( ()=> {
+						onMsgChange(undefined)
+					}, 5000)
 				})
 				.catch( (e) => {
-					window.alert(`error with update person: ${e}`)
+					onErrorChange(`error with update person: ${e}`)
+					setTimeout( ()=> {
+						onErrorChange(undefined)
+					}, 5000)
 				})
 			}
 		} else {
 			personsService.create(newPerson)
 			.then( (data) => {
 				onPersonsChange(persons.concat(data))
+				onMsgChange(`${data.name} is created`)
+				setTimeout( ()=> {
+					onMsgChange(undefined)
+				}, 5000)
 			})
 			.catch( (e)=> {
-				window.alert(`error with create new person: ${e}`)
+				onErrorChange(`error with create new person: ${e}`)
+				setTimeout( ()=> {
+					onErrorChange(undefined)
+				}, 5000)
 			})
 		}
 	}
@@ -81,7 +117,7 @@ const PersonForm = ({persons, onPersonsChange}) => {
 	)
 }
 
-const Person = ({person, onPersonDelete}) => {
+const Person = ({person, onPersonDelete, onMsgChange, onErrorChange}) => {
 
 	const handleDelete = (event) => {
 		const id = event.target.value
@@ -90,8 +126,15 @@ const Person = ({person, onPersonDelete}) => {
 			personsService.deletePerson(id)
 			.then( () => {
 				onPersonDelete(id)
+				onMsgChange(`${name} has been deleted`)
+				setTimeout( ()=> {
+					onMsgChange(undefined)
+				}, 5000)
 			}).catch( (e) => {
-				window.alert(`error withn delete ${name}: ${e}`)
+				onErrorChange(`error withn delete ${name}: ${e}`)
+				setTimeout( ()=> {
+					onErrorChange(undefined)
+				}, 5000)
 			})
 		}
 	}
@@ -100,21 +143,28 @@ const Person = ({person, onPersonDelete}) => {
 	)
 }
 
-const Persons = ({persons, onPersonDelete}) => {
+const Persons = ({persons, onPersonDelete, onMsgChange, onErrorChange}) => {
 	return (
 		<div>
 			{persons.map( (person) => 
-				<Person key={person.name} person={person} onPersonDelete={onPersonDelete}/>
+				<Person key={person.name} person={person} onPersonDelete={onPersonDelete} onMsgChange={onMsgChange} onErrorChange={onErrorChange} />
 			)}
 		</div>
 	)
 }
 
 const App = () => {
-
+	const [ msg, setMsg ] = useState() 
 	const [ persons, setPersons ] = useState()
+	const [ error, setError ] = useState()
 	const handlePersonsChange = (persons) => {
 		setPersons(persons)
+	}
+	const handleMsgChange = (msg) => {
+		setMsg(msg)
+	}
+	const handleErrorChange = (e) => {
+		setError(e)
 	}
 	const handlePersonDelete = (id) => {
 		setPersons(persons.filter( (person) => Number(id) !== person.id))
@@ -135,11 +185,13 @@ const App = () => {
 	return (
 		<div>
 			<h2>Phonebook</h2>
+			<Notification msg={msg} />
+			<Error e={error} />
 			<Filter persons={persons} />
 			<h2>add a new</h2>
-			<PersonForm persons={persons} onPersonsChange={handlePersonsChange} />
+			<PersonForm persons={persons} onPersonsChange={handlePersonsChange} onMsgChange={handleMsgChange} onErrorChange={handleErrorChange}/>
 			<h2>Numbers</h2>
-			<Persons persons={persons} onPersonDelete={handlePersonDelete}/>
+			<Persons persons={persons} onPersonDelete={handlePersonDelete} onMsgChange={handleMsgChange} onErrorChange={handleErrorChange}/>
 		</div>
 	)
 }
