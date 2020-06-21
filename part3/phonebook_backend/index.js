@@ -96,7 +96,7 @@ app.post('/api/persons', (req, res) => {
         id
     }
     persons = persons.concat(person)
-    res.json(persons)
+    res.json(person)
 })
 
 app.listen(port, ()=>{
