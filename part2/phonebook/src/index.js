@@ -167,7 +167,7 @@ const App = () => {
 		setError(e)
 	}
 	const handlePersonDelete = (id) => {
-		setPersons(persons.filter( (person) => Number(id) !== person.id))
+		setPersons(persons.filter( (person) => id !== person.id))
 	}
 	useEffect( ()=>{
 		personsService.getAll()
