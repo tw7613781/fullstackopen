@@ -77,7 +77,7 @@ const PersonForm = ({persons, onPersonsChange, onMsgChange, onErrorChange}) => {
 					}, 5000)
 				})
 				.catch( (e) => {
-					onErrorChange(`error with update person: ${JSON.stringify(e.response.data)}`)
+					onErrorChange(personsService.errorHandler(e))
 					setTimeout( ()=> {
 						onErrorChange(undefined)
 					}, 5000)
@@ -93,7 +93,7 @@ const PersonForm = ({persons, onPersonsChange, onMsgChange, onErrorChange}) => {
 				}, 5000)
 			})
 			.catch( (e)=> {
-				onErrorChange(`error with create new person: ${JSON.stringify(e.response.data)}`)
+				onErrorChange(personsService.errorHandler(e))
 				setTimeout( ()=> {
 					onErrorChange(undefined)
 				}, 5000)
@@ -131,7 +131,7 @@ const Person = ({person, onPersonDelete, onMsgChange, onErrorChange}) => {
 					onMsgChange(undefined)
 				}, 5000)
 			}).catch( (e) => {
-				onErrorChange(`error withn delete ${name}: ${e}`)
+				onErrorChange(personsService.errorHandler(e))
 				setTimeout( ()=> {
 					onErrorChange(undefined)
 				}, 5000)
