@@ -77,7 +77,7 @@ const PersonForm = ({persons, onPersonsChange, onMsgChange, onErrorChange}) => {
 					}, 5000)
 				})
 				.catch( (e) => {
-					onErrorChange(`error with update person: ${e}`)
+					onErrorChange(`error with update person: ${JSON.stringify(e.response.data)}`)
 					setTimeout( ()=> {
 						onErrorChange(undefined)
 					}, 5000)
@@ -93,7 +93,7 @@ const PersonForm = ({persons, onPersonsChange, onMsgChange, onErrorChange}) => {
 				}, 5000)
 			})
 			.catch( (e)=> {
-				onErrorChange(`error with create new person: ${e}`)
+				onErrorChange(`error with create new person: ${JSON.stringify(e.response.data)}`)
 				setTimeout( ()=> {
 					onErrorChange(undefined)
 				}, 5000)
