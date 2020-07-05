@@ -14,8 +14,8 @@ beforeEach(async () => {
   await Promise.all(promiseSave)
 })
 
-describe('Blog Restful API test', () => {
-  test('get /api/blogs ==> blogs length', async () => {
+describe('Blog Restful API test ==> GET /api/blogs', () => {
+  test('get all blogs', async () => {
     const response = await api
       .get('/api/blogs')
       .expect(200)
@@ -23,13 +23,37 @@ describe('Blog Restful API test', () => {
     expect(response.body).toHaveLength(helper.initialBlogs.length)
   })
 
-  test('get /api/blogs ==> property id exist', async () => {
+  test('Blog id exist', async () => {
     const res = await api.get('/api/blogs')
     const blogsId = res.body.map((blog) => blog.id)
     expect(blogsId).toBeDefined()
   })
+})
 
-  test('post /api/blogs ==> blogs number increased by 1 and the content is correct', async () => {
+describe('Blog RestFul API test ==> GET /api/blogs/:id', () => {
+  test('successful with a valid id', async () => {
+    const res = await helper.blogsInDb()
+    const blog = res[0]
+    const ret = await api
+      .get(`/api/blogs/${blog.id}`)
+      .expect(200)
+      .expect('Content-Type', /application\/json/)
+    expect(ret.body).toEqual(blog)
+  })
+
+  test('fails with status code 404 if blog id does not exist', async () => {
+    const id = await helper.nonExistingId()
+    await api.get(`/api/blogs/${id}`).expect(404)
+  })
+
+  test('fails with status 400 if blog id is invalid', async () => {
+    const invalidId = '5a3d5da59070081a82a3445'
+    await api.get(`/api/blogs/${invalidId}`).expect(400)
+  })
+})
+
+describe('Blog Restful API test ==> POST /api/blogs', () => {
+  test('post a blog, number increased by 1 and the content is correct', async () => {
     const newBlog = {
       title: '科技爱好者周刊（第 114 期）：U 盘化生存和 Uber-job',
       author: '阮一峰',
@@ -41,13 +65,13 @@ describe('Blog Restful API test', () => {
       .send(newBlog)
       .expect(201)
       .expect('Content-Type', /application\/json/)
-    const res = await api.get('/api/blogs')
-    const contents = res.body.map((r) => r.title)
-    expect(res.body).toHaveLength(helper.initialBlogs.length + 1)
+    const res = await helper.blogsInDb()
+    const contents = res.map((r) => r.title)
+    expect(res).toHaveLength(helper.initialBlogs.length + 1)
     expect(contents).toContain('科技爱好者周刊（第 114 期）：U 盘化生存和 Uber-job')
   })
 
-  test('post /api/blogs ==> likes of blog is able to be missing and default value is 0', async () => {
+  test('likes of blog is able to be missing and default value is 0', async () => {
     const newBlog = {
       title: '有时候服务端真的没法确定这是一次Ajax请求',
       author: '虢國書館',
@@ -62,7 +86,7 @@ describe('Blog Restful API test', () => {
     expect(res.body.likes).toBe(0)
   })
 
-  test('post /api/blogs ==> title and url are required', async () => {
+  test('title and url are required', async () => {
     const blogNoTitle = {
       author: '虢國書館',
       url:
@@ -84,6 +108,40 @@ describe('Blog Restful API test', () => {
       .send(blogNoUrl)
       .expect(400)
       .expect('Content-Type', /application\/json/)
+  })
+})
+
+describe('Blog Restful API test ==> DELETE /api/blogs/:id', () => {
+  test('succeeds with status code 204 if id is valid', async () => {
+    const blogs = await helper.blogsInDb()
+    const blog = blogs[0]
+    await api.delete(`/api/blogs/${blog.id}`).expect(204)
+    const newBlogs = await helper.blogsInDb()
+    expect(newBlogs).toHaveLength(blogs.length - 1)
+    const titles = newBlogs.map((blog) => blog.title)
+    expect(titles).not.toContain(blog.title)
+  })
+})
+
+describe('Blog Restful API test ==> PUT /api/blogs/:id', () => {
+  test('succeeds update blog if id is valid', async () => {
+    const blogs = await helper.blogsInDb()
+    const blog = blogs[0]
+    blog.likes = 10
+    const updatedBlog = await api
+      .put(`/api/blogs/${blog.id}`)
+      .send(blog)
+      .expect(200)
+      .expect('Content-Type', /application\/json/)
+    expect(updatedBlog.body).toEqual(blog)
+  })
+
+  test('fails with status 400 if attribute is incorrect', async () => {
+    const blogs = await helper.blogsInDb()
+    const blog = blogs[0]
+    blog.likes = 10
+    delete blog.url
+    await api.put(`/api/blogs/${blog.id}`).send(blog).expect(400)
   })
 })
 
