@@ -25,6 +25,9 @@ const errorHandler = (err, req, res, next) => {
   if (err.name === 'ValidationError') {
     res.status(400).send({ error: err.message })
   }
+  if (err.name === 'Error') {
+    res.status(400).send({ error: err.message })
+  }
   next(err)
 }
 
