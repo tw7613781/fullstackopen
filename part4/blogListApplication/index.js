@@ -7,6 +7,7 @@ const logger = require('./utils/logger')
 const middleware = require('./utils/middleware')
 const blogsRoute = require('./controllers/blogs')
 const usersRoute = require('./controllers/users')
+const loginRoute = require('./controllers/login')
 
 logger.info('Connecting to', config.MONGODB_URI)
 const mongoUrl = config.MONGODB_URI
@@ -23,9 +24,11 @@ mongoose
 app.use(cors())
 app.use(express.json())
 app.use(middleware.requestLogger)
+app.use(middleware.tokenExtractor)
 
 app.use('/api/blogs', blogsRoute)
 app.use('/api/users', usersRoute)
+app.use('/api/login', loginRoute)
 
 app.use(middleware.unknownEndpoint)
 app.use(middleware.errorHandler)

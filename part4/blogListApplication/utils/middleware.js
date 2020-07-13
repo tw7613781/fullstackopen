@@ -8,6 +8,16 @@ const requestLogger = (request, response, next) => {
   next()
 }
 
+const tokenExtractor = (request, response, next) => {
+  const authorization = request.get('authorization')
+  if (authorization && authorization.toLowerCase().startsWith('bearer ')) {
+    request.token = authorization.substring(7)
+    next()
+  } else {
+    return response.status(401).json({ error: 'token is missing' })
+  }
+}
+
 const unknownEndpoint = (request, response) => {
   response.status(404).send({ error: 'unknown endpoint' })
 }
@@ -17,16 +27,19 @@ const errorHandler = (err, req, res, next) => {
     console.log(err.message)
   }
   if (err.name === 'CastError') {
-    res.status(400).send({ error: 'malformatted id' })
+    res.status(400).json({ error: 'malformatted id' })
   }
   if (err.name === 'SyntaxError') {
-    res.status(400).send({ error: err.message })
+    res.status(400).json({ error: err.message })
   }
   if (err.name === 'ValidationError') {
-    res.status(400).send({ error: err.message })
+    res.status(400).json({ error: err.message })
+  }
+  if (err.name === 'JsonWebTokenError') {
+    res.status(401).json({ error: 'invalid token' })
   }
   if (err.name === 'Error') {
-    res.status(400).send({ error: err.message })
+    res.status(400).json({ error: err.message })
   }
   next(err)
 }
@@ -35,4 +48,5 @@ module.exports = {
   requestLogger,
   unknownEndpoint,
   errorHandler,
+  tokenExtractor,
 }
