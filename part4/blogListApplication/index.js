@@ -24,7 +24,16 @@ mongoose
 app.use(cors())
 app.use(express.json())
 app.use(middleware.requestLogger)
-app.use(middleware.tokenExtractor)
+app.use(
+  middleware.tokenExtractor.unless({
+    path: [
+      { url: '/api/users', methods: ['GET', 'POST'] },
+      { url: '/api/blogs', methods: 'GET' },
+      { url: '/api/blogs/', methods: 'GET' },
+      { url: '/api/login', methods: 'POST' },
+    ],
+  })
+)
 
 app.use('/api/blogs', blogsRoute)
 app.use('/api/users', usersRoute)

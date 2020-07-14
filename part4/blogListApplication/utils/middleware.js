@@ -1,4 +1,5 @@
 const logger = require('./logger')
+var unless = require('express-unless')
 
 const requestLogger = (request, response, next) => {
   logger.info('Method:', request.method)
@@ -17,6 +18,7 @@ const tokenExtractor = (request, response, next) => {
     return response.status(401).json({ error: 'token is missing' })
   }
 }
+tokenExtractor.unless = unless
 
 const unknownEndpoint = (request, response) => {
   response.status(404).send({ error: 'unknown endpoint' })

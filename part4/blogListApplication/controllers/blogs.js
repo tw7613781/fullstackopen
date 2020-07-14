@@ -2,6 +2,7 @@ const blogsRoute = require('express').Router()
 const Blog = require('../models/blog')
 const User = require('../models/user')
 const jwt = require('jsonwebtoken')
+const blog = require('../models/blog')
 require('express-async-errors')
 
 blogsRoute.get('/', async (request, response) => {
@@ -41,6 +42,14 @@ blogsRoute.post('/', async (request, response) => {
 })
 
 blogsRoute.delete('/:id', async (request, response) => {
+  const decodedToken = jwt.verify(request.token, process.env.SECRET)
+  if (!decodedToken.id) {
+    return response.status(401).json({ error: 'token is invalid' })
+  }
+  const blog = await Blog.findById(request.params.id)
+  if (blog.user.toString() !== decodedToken.id) {
+    return response.status(401).json({ error: 'token is invalid' })
+  }
   const ret = await Blog.findByIdAndRemove(request.params.id)
   if (ret) {
     response.status(204).end()
